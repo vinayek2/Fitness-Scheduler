@@ -1,6 +1,17 @@
 const express = require('express');
+const app = express(); 
+const handler = require('./routes/handler'); 
+const cors = require('cors'); 
 const router = express.Router();
 const pool =  require('../config/db.js');
+
+app.use(express.json())
+app.use(cors());
+app.use(handler);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
 
 router.get('/students', async (req, res) => {
     pool.getConnection( (err, conn) => {
