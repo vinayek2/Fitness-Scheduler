@@ -1,5 +1,7 @@
 import React, {useState} from 'react';
 
+import {useNavigate} from 'react-router-dom'; 
+
 function SignUp() {
     const [formData, setFormData] = useState({
         firstName: '', 
@@ -10,6 +12,8 @@ function SignUp() {
         address: '',
         password: '', 
     });
+
+    const navigate = useNavigate();
     
     const handleChange = (e) => {
 
@@ -49,6 +53,7 @@ function SignUp() {
                 console.log("Network error occured!");
             } else{
                 console.log('Student added successfully');
+                navigate('/home'); 
             }
         } catch (error) {
             console.error('Error adding student:', error); 
