@@ -1,68 +1,88 @@
-const express = require('express');
-const app = express(); 
-const handler = require('./routes/handler'); 
-const cors = require('cors'); 
-const router = express.Router();
-const pool =  require('../config/db.js');
-
-app.use(express.json())
-app.use(cors());
-app.use(handler);
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
+import express from 'express'; 
+import cors from 'cors'; 
+import pool from '../config/db.js'
+
+const router = express.Router(); 
+
+router.use(express.json()); 
+router.use(cors()); 
+
+
+///GET /students
 router.get('/students', async (req, res) => {
-    pool.getConnection( (err, conn) => {
-        if (err) throw err;
+    // pool.getConnection( (err, conn) => {
+    //     if (err) throw err;
 
-        try {
-            const qry = `SELECT s.student_id, 
-            s.first_name, s.last_name, s.dob, 
-            s.email, s.phone, s.address, 
-            s.program_id, s.enrollment_date
+    //     try {
+    //         const qry = `SELECT s.student_id, 
+    //         s.first_name, s.last_name, s.dob, 
+    //         s.email, s.phone, s.address, 
+    //         s.program_id, s.enrollment_date
+    //         FROM students s 
+    //         INNER JOIN student_courses as sc ON sc.student_id=s.student_id`;
+    //         conn.query(qry, (err, result) => {
+    //             conn.release();
+    //             if (err) throw err;
+    //             res.send(JSON.stringify(result));
+    //         });
+    //     } catch (err) {
+    //         console.log(err);
+    //         res.end();
+    //     }
+    // });
+
+    try {
+        const [rows] = await pool.query(`
+            SELECT s.student_id, 
+                   s.first_name, s.last_name, s.dob, 
+                   s.email, s.phone, s.address, 
+                   s.program_id, s.enrollment_date
             FROM students s 
-            INNER JOIN student_courses as sc ON sc.student_id=s.student_id`;
-            conn.query(qry, (err, result) => {
-                conn.release();
-                if (err) throw err;
-                res.send(JSON.stringify(result));
-            });
-        } catch (err) {
-            console.log(err);
-            res.end();
-        }
-    });
+            INNER JOIN student_courses sc ON sc.student_id = s.student_id
+        `);
+        res.json(rows);
+    } catch (err) {
+        console.error('Error fetching students:', err);
+        res.status(500).json({ error: 'Database query error' });
+    }
 });
 
 router.post('/addStudent', async (req, res) => {
 
-    student_id = req.body.input;
-    first_name = req.body.input;
-    last_name = req.body.input;
-    dob = req.body.input;
-    email = req.body.input;
-    phone = req.body.input;
-    address = req.body.input;
-    program_id = req.body.input;
-    enrollment_date = req.body.input;
-    
+   
+    // const { student_id, first_name, last_name, dob, email, phone, address, program_id, enrollment_date } = req.body;
 
-    pool.getConnection( (err, conn) => {
-        if (err) throw err;
+    // pool.getConnection( (err, conn) => {
+    //     if (err) throw err;
         
-        const qry = `INSERT INTO students(student_id, first_name, last_name, dob, email, phone, address, program_id, enrollment_date) 
-        VALUES(?,?,?,?,?,?,?,?, NOW())`;
-        conn.query(qry, [student_id, first_name, last_name, dob, email, phone, address, program_id, enrollment_date], (err, result) => {
-            conn.release();
-            if (err) throw err;
-            console.log('Student added!');
-        });
+    //     const qry = `INSERT INTO students(student_id, first_name, last_name, dob, email, phone, address, program_id, enrollment_date) 
+    //     VALUES(?,?,?,?,?,?,?,?, NOW())`;
+    //     conn.query(qry, [student_id, first_name, last_name, dob, email, phone, address, program_id, enrollment_date], (err, result) => {
+    //         conn.release();
+    //         if (err) throw err;
+    //         console.log('Student added!');
+    //     });
 
-        res.redirect('/students');
-        res.end();
-    });
+    //     res.redirect('/students');
+    //     res.end();
+    // });
+
+    const { student_id, first_name, last_name, dob, email, phone, address, program_id, enrollment_date } = req.body;
+
+    try {
+        const [result] = await pool.query(`
+            INSERT INTO students (student_id, first_name, last_name, dob, email, phone, address, program_id, enrollment_date) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [student_id, first_name, last_name, dob, email, phone, address, program_id, enrollment_date]);
+
+        console.log('Student added!', result);
+        res.status(201).json({ message: 'Student added successfully' });
+    } catch (err) {
+        console.error('Error inserting student:', err);
+        res.status(500).json({ error: 'Database insertion error' });
+    }
 });
 
-module.exports = router;
+export default router; 
