@@ -1,23 +1,16 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 
-import {useNavigate} from 'react-router-dom'; 
-
-function SignIn() {
+function SignIn({setAuthenticated}) {
     const [formData, setFormData] = useState({
-        firstName: '', 
-        lastName: '',
-        dob: '',
-        phone: '', 
+        student_id: '', 
         email: '', 
-        address: '',
-        password: '', 
     });
 
     const navigate = useNavigate();
     
     const handleChange = (e) => {
-
-        const {id, value} = e.target; 
+        const { id, value } = e.target; 
         setFormData(prevState => ({
             ...prevState, 
             [id]: value
@@ -28,71 +21,60 @@ function SignIn() {
         e.preventDefault(); 
         
         try {
-
-            //const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-            const response = await fetch(`/addStudent`, {
-
-                method: 'POST', 
+            const { student_id, email } = formData; 
+            const response = await fetch(`http://localhost:5000/students?student_id=${student_id}&email=${email}`, {
+                method: 'GET', 
                 headers: {
                     'Content-Type': 'application/json'
                 }, 
-                body: JSON.stringify({
-                    student_id: 1223939,
-                    first_name: formData.firstName, 
-                    last_name: formData.lastName,
-                    dob: formData.dob,
-                    phone: formData.phone, 
-                    email: formData.email, 
-                    address: formData.address,
-                    program_id: 1, 
-                    enrollment_date: new Date().toISOString().split('T')[0]
-                })
-
             }); 
-            if(!response.ok){
-                console.log("Network error occured!");
-            } else{
-                console.log('Student added successfully');
-                navigate('/home'); 
+            if (!response.ok) {
+                console.log("Network error occurred!");
+            } else {
+                const data = await response.json(); 
+                if (data.length > 0) {
+                    console.log('Student data retrieved successfully: ', data);
+                    setAuthenticated(true); 
+                    navigate('/home');
+                } else {
+                    console.log('Student ID or Email not found'); 
+                }
             }
         } catch (error) {
-            console.error('Error adding student:', error); 
+            console.error('Error fetching student:', error); 
         }
-    }
+    };
+
     return (
         <section>
             <div className="container-fluid">
-                <h1 align="center">Sign Up</h1>
+                <h1 align="center">Sign In</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label htmlFor="firstName">First Name</label>
-                        <input type="text" className="form-control" id="firstName" placeholder="Enter First Name" value={formData.firstName} onChange={handleChange} />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="lastName">Last Name</label>
-                        <input type="text" className="form-control" id="lastName" placeholder="Enter Last Name" value={formData.lastName} onChange={handleChange}/>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="dob">Date of Birth</label>
-                        <input type="text" className="form-control" id="dob" placeholder="Enter DOB" value={formData.dob} onChange={handleChange}/>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="phone">Phone Number</label>
-                        <input type="number" className="form-control" id="phone" placeholder="Enter Phone Number" value={formData.phone} onChange={handleChange} />
+                        <label htmlFor="student_id">Student ID</label>
+                        <input 
+                            type="text" 
+                            className="form-control" 
+                            id="student_id" 
+                            placeholder="Enter Student ID" 
+                            value={formData.student_id} 
+                            onChange={handleChange} 
+                            required
+                        />
                     </div>
                     <div className="form-group">
                         <label htmlFor="email">Email address</label>
-                        <input type="email" className="form-control" id="email" placeholder="Enter email" value={formData.email} onChange={handleChange} />
+                        <input 
+                            type="email" 
+                            className="form-control" 
+                            id="email" 
+                            placeholder="Enter email" 
+                            value={formData.email} 
+                            onChange={handleChange} 
+                            required
+                        />
                     </div>
-                    <div className="form-group">
-                        <label htmlFor="address">Location Address</label>
-                        <input type="text" className="form-control" id="address" placeholder="Enter Location" value={formData.address} onChange={handleChange} />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="password">Password</label>
-                        <input type="password" className="form-control" id="password" placeholder="Enter Password" />
-                    </div>
+                    
                     
                     <button type="submit" className="btn btn-primary">Submit</button>
                 </form>

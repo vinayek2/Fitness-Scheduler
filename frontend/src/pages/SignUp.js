@@ -10,7 +10,7 @@ function SignUp() {
         phone: '', 
         email: '', 
         address: '',
-        password: '', 
+        program_id: '',
     });
 
     const navigate = useNavigate();
@@ -30,21 +30,20 @@ function SignUp() {
         try {
 
             //const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-            const response = await fetch(`/addStudent`, {
+            const response = await fetch(`http://localhost:5000/addStudent`, {
 
                 method: 'POST', 
                 headers: {
                     'Content-Type': 'application/json'
                 }, 
                 body: JSON.stringify({
-                    student_id: 1223939,
                     first_name: formData.firstName, 
                     last_name: formData.lastName,
                     dob: formData.dob,
                     phone: formData.phone, 
                     email: formData.email, 
                     address: formData.address,
-                    program_id: 1, 
+                    program_id: formData.program_id, 
                     enrollment_date: new Date().toISOString().split('T')[0]
                 })
 
@@ -52,7 +51,8 @@ function SignUp() {
             if(!response.ok){
                 console.log("Network error occured!");
             } else{
-                console.log('Student added successfully');
+                const result = await response.json();
+                console.log('Student added successfully with ID: ', result.student_id);
                 navigate('/home'); 
             }
         } catch (error) {
@@ -85,14 +85,14 @@ function SignUp() {
                         <input type="email" className="form-control" id="email" placeholder="Enter email" value={formData.email} onChange={handleChange} />
                     </div>
                     <div className="form-group">
+                        <label htmlFor="program_id">Program ID</label>
+                        <input type="text" className="form-control" id="program_id" placeholder="Enter program id" value={formData.program_id} onChange={handleChange} />
+                    </div>
+                    <div className="form-group">
                         <label htmlFor="address">Location Address</label>
                         <input type="text" className="form-control" id="address" placeholder="Enter Location" value={formData.address} onChange={handleChange} />
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="password">Password</label>
-                        <input type="password" className="form-control" id="password" placeholder="Enter Password" />
-                    </div>
                     
                     <button type="submit" className="btn btn-primary">Submit</button>
                 </form>
